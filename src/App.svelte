@@ -45,24 +45,26 @@
                 ...p.skills,
                 { id: "", name: "", type: p.type1 },
                 ...(p.type2 ? [{ id: "", name: "", type: p.type2 }] : []),
-              ].map((s) => {
-                if (s === null) {
-                  return null;
-                }
+              ]
+                .filter((s) => s)
+                .map((s) => {
+                  if (s === null) {
+                    return null;
+                  }
 
-                return {
-                  ...s,
-                  leverage: calcAttackLeverage(
-                    targetPokemon.type1,
-                    targetPokemon.type2 === ""
-                      ? undefined
-                      : targetPokemon.type2,
-                    s.type,
-                    p.type1,
-                    p.type2
-                  ),
-                };
-              }),
+                  return {
+                    ...s,
+                    leverage: calcAttackLeverage(
+                      targetPokemon.type1,
+                      targetPokemon.type2 === ""
+                        ? undefined
+                        : targetPokemon.type2,
+                      s.type,
+                      p.type1,
+                      p.type2
+                    ),
+                  };
+                }),
             };
           })
           .sort((a, b) => {
