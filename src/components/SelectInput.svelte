@@ -58,7 +58,7 @@
   />
   {#if isFocused}
     <ui
-      class="border h-48 overflow-y-scroll block w-fit absolute z-10 bg-white px-2 text-gray-600"
+      class="border max-h-48 overflow-y-scroll block w-fit absolute z-10 bg-white px-2 text-gray-600"
     >
       <li class=" cursor-pointer" on:click={() => itemOnClick(undefined)}>
         - - - - -
