@@ -221,6 +221,11 @@
     >
       {pokemon.name}
     </SelectInput>
+    {#if targetPokemon}
+      <div class="text-gray-600 text-sm font-bold">
+        {targetPokemon.h}-{targetPokemon.a}-{targetPokemon.b}-{targetPokemon.c}-{targetPokemon.d}-{targetPokemon.s}
+      </div>
+    {/if}
   </div>
 
   <div class="flex flex-wrap mt-4">
@@ -233,7 +238,12 @@
           {/if}
         </div>
 
-        <div class="p-1">{partyPokemon.name}</div>
+        <div class="p-1">
+          <div>{partyPokemon.name}</div>
+          <div class="text-gray-600 text-sm font-bold">
+            S:{partyPokemon.s}
+          </div>
+        </div>
 
         <div class="">
           <div class="bg-red-400 -mx-1 px-1 text-white  text-sm">

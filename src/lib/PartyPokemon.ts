@@ -7,5 +7,6 @@ export type PartyPokemon = {
     type1: PokemonType
     type2: PokemonType | null
     characteristic: Characteristic | null
-    skills: [Skill | null, Skill | null, Skill | null, Skill | null]
+    skills: [Skill | null, Skill | null, Skill | null, Skill | null],
+    s: number
 }

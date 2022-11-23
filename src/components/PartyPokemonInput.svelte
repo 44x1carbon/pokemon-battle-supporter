@@ -23,6 +23,7 @@
       name: pokemon.name,
       type1: pokemon.type1,
       type2: pokemon.type2 === "" ? undefined : pokemon.type2,
+      s: pokemon.s,
       characteristic: undefined,
       skills: [undefined, undefined, undefined, undefined],
     };
