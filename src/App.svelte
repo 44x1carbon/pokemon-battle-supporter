@@ -78,8 +78,12 @@
               defenceLeverage: defenceLeverage,
               skills: [
                 ...p.skills,
-                { id: "", name: "", type: p.type1 },
-                ...(p.type2 ? [{ id: "", name: "", type: p.type2 }] : []),
+                ...(p.skills.filter((s) => s).length !== 0
+                  ? []
+                  : [
+                      { id: "", name: "", type: p.type1 },
+                      ...(p.type2 ? [{ id: "", name: "", type: p.type2 }] : []),
+                    ]),
               ]
                 .filter((s) => s)
                 .map((s) => {
@@ -138,6 +142,7 @@
 
   function summarizeSkills(
     skills: (Skill & { leverage: number; isCharacteristic: boolean })[],
+    isExcludeX1: boolean = false,
     isDASC: boolean = false
   ): (Skill & { leverage: number; isCharacteristic: boolean })[] {
     return Object.values(
@@ -149,13 +154,21 @@
           }
           return p;
         }, {} as { [type in PokemonType]: Skill & { leverage: number; isCharacteristic: boolean } })
-    ).sort((a, b) => {
-      if (isDASC) {
-        return b.leverage - a.leverage;
-      } else {
-        return a.leverage - b.leverage;
-      }
-    });
+    )
+      .filter((s) => {
+        if (isExcludeX1) {
+          return s.leverage !== 1;
+        } else {
+          return true;
+        }
+      })
+      .sort((a, b) => {
+        if (isDASC) {
+          return b.leverage - a.leverage;
+        } else {
+          return a.leverage - b.leverage;
+        }
+      });
   }
 </script>
 
@@ -203,8 +216,8 @@
           <div class="bg-red-400 -mx-1 px-1 text-white  text-sm">
             攻撃をした時
           </div>
-          <div class="p-1">
-            {#each summarizeSkills(partyPokemon.skills) as skill}
+          <div class="p-1" style="height: 5.5rem;">
+            {#each summarizeSkills(partyPokemon.skills, false, true) as skill}
               <div>
                 {skill.type} ×{skill.leverage}
                 <span class="text-xs"
@@ -220,7 +233,7 @@
             わざを受けた時
           </div>
           <div class="p-1">
-            {#each summarizeSkills(partyPokemon.defenceLeverage, true) as skill}
+            {#each summarizeSkills(partyPokemon.defenceLeverage, true, true) as skill}
               <div>
                 {skill.type} ×{skill.leverage}
                 <span class="text-xs"
