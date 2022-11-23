@@ -121,7 +121,7 @@
             return (
               Math.max(
                 ...b.skills.filter((s) => s !== null).map((s) => s.leverage)
-              ) +
+              ) -
               Math.max(
                 ...b.defenceLeverage
                   .filter((s) => s !== null)
@@ -129,7 +129,7 @@
               ) -
               (Math.max(
                 ...a.skills.filter((s) => s !== null).map((s) => s.leverage)
-              ) +
+              ) -
                 Math.max(
                   ...a.defenceLeverage
                     .filter((s) => s !== null)
