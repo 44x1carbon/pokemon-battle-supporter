@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
+  const dispatch = createEventDispatcher();
 
   export let items: any[];
   export let field: string = "name";
@@ -11,6 +12,7 @@
   function onFocus() {
     isFocused = true;
     query = "";
+    dispatch("change", undefined);
   }
   function onBlur() {
     setTimeout(() => {
@@ -32,8 +34,6 @@
   $: {
     query = value ? value[field] : "";
   }
-
-  const dispatch = createEventDispatcher();
 
   function itemOnClick(item: any | undefined) {
     dispatch("change", item);
