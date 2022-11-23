@@ -126,8 +126,7 @@
                 ...b.defenceLeverage
                   .filter((s) => s !== null)
                   .map((s) => s.leverage)
-              ) *
-                0.1 -
+              ) -
               (Math.max(
                 ...a.skills.filter((s) => s !== null).map((s) => s.leverage)
               ) +
@@ -135,8 +134,7 @@
                   ...a.defenceLeverage
                     .filter((s) => s !== null)
                     .map((s) => s.leverage)
-                ) *
-                  0.1)
+                ))
             );
           });
 
