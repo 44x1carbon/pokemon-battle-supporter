@@ -1,3 +1,4 @@
+import type { Characteristic } from "./Characteristic"
 import type { PartyPokemon } from "./PartyPokemon"
 import type { Pokemon } from "./Pokemon"
 import type { Skill } from "./Skill"
@@ -399,14 +400,14 @@ const toLeverage = (c: Compatibility): number => {
     }
 }
 
-export const calcAttackLeverage = (type1: PokemonType, type2: PokemonType | undefined, skillType: PokemonType, pokemonType1: PokemonType, pokemonType2: PokemonType | undefined): number => {
+export const calcAttackLeverage = (type1: PokemonType, type2: PokemonType | undefined, skillType: PokemonType, pokemonType1: PokemonType, pokemonType2: PokemonType | undefined, characteristic: Characteristic | null): number => {
     return (pokemonType1 == skillType || pokemonType2 == skillType ? 1.5 : 1) * toLeverage(TypeCompatibilityList[skillType][type1])
-        * (type2 ? toLeverage(TypeCompatibilityList[skillType][type2]) : 1)
+        * (type2 ? toLeverage(TypeCompatibilityList[skillType][type2]) : 1) * (characteristic && characteristic.type === skillType ? characteristic.leverage : 1)
 }
 
-export const calcDefenceLeverage = (target: Pokemon, partyPokemon: PartyPokemon): number => {
+export const calcDefenceLeverage = (target: Pokemon, partyPokemon: PartyPokemon, characteristic: Characteristic | null): number => {
     return Math.max(
-        calcAttackLeverage(partyPokemon.type1, partyPokemon.type2, target.type1, target.type1, target.type2 !== "" ? target.type2 : undefined),
-        target.type2 === "" ? 0 : calcAttackLeverage(partyPokemon.type1, partyPokemon.type2, target.type2, target.type1, target.type2)
+        calcAttackLeverage(partyPokemon.type1, partyPokemon.type2, target.type1, target.type1, target.type2 !== "" ? target.type2 : undefined, characteristic),
+        target.type2 === "" ? 0 : calcAttackLeverage(partyPokemon.type1, partyPokemon.type2, target.type2, target.type1, target.type2, characteristic)
     )
 }

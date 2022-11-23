@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import PartyPokemonInput from "./components/PartyPokemonInput.svelte";
   import SelectInput from "./components/SelectInput.svelte";
+  import { InvalidCharacteristic } from "./lib/InvalidCharacteristic";
   import type { Party } from "./lib/Party";
   import type { Pokemon } from "./lib/Pokemon";
   import { PokemonData } from "./lib/PokemonData";
@@ -12,6 +13,7 @@
     type PokemonType,
   } from "./lib/PokemonTypes";
   import type { Skill } from "./lib/Skill";
+  import { SkillData } from "./lib/SkillData";
 
   const SAVE_KEY = "POKEMON-BATTLE-SUPPORTER";
 
@@ -30,7 +32,7 @@
     }
   }
 
-  let targetPokemon: Pokemon | null = PokemonData[0];
+  let targetPokemon: Pokemon | null = null;
 
   $: _party =
     targetPokemon === null
@@ -38,9 +40,42 @@
       : party
           .filter((p) => p !== null)
           .map((p) => {
+            const targetSkills = [
+              ...targetPokemon.tl.split("/").map((seg) => seg.split(",")[0]),
+              ...targetPokemon.tm.split("/"),
+              ...targetPokemon.tt.split("/"),
+            ]
+              .reduce((p, c) => {
+                if (!p.includes(c)) {
+                  p.push(c);
+                }
+
+                return p;
+              }, [])
+              .map((skillName) => {
+                return SkillData.find((skill) => skill.name === skillName);
+              })
+              .filter((skill) => skill !== undefined);
+
+            const defenceLeverage = targetSkills.map((s) => {
+              return {
+                ...s,
+                isCharacteristic:
+                  p.characteristic && p.characteristic.type === s.type,
+                leverage: calcAttackLeverage(
+                  p.type1,
+                  p.type2,
+                  s.type,
+                  targetPokemon.type1,
+                  targetPokemon.type2 === "" ? undefined : targetPokemon.type2,
+                  p.characteristic
+                ),
+              };
+            });
+
             return {
               ...p,
-              defenceLeverage: calcDefenceLeverage(targetPokemon, p),
+              defenceLeverage: defenceLeverage,
               skills: [
                 ...p.skills,
                 { id: "", name: "", type: p.type1 },
@@ -52,8 +87,18 @@
                     return null;
                   }
 
+                  const characteristicList = [
+                    targetPokemon.sc1,
+                    targetPokemon.sc2,
+                  ]
+                    .map((sc) =>
+                      InvalidCharacteristic.find((c) => c.name === sc)
+                    )
+                    .filter((c) => c)
+                    .filter((c) => c.type === s.type);
                   return {
                     ...s,
+                    isCharacteristic: characteristicList.length !== 0,
                     leverage: calcAttackLeverage(
                       targetPokemon.type1,
                       targetPokemon.type2 === ""
@@ -61,7 +106,8 @@
                         : targetPokemon.type2,
                       s.type,
                       p.type1,
-                      p.type2
+                      p.type2,
+                      characteristicList[0]
                     ),
                   };
                 }),
@@ -72,17 +118,28 @@
               Math.max(
                 ...b.skills.filter((s) => s !== null).map((s) => s.leverage)
               ) +
-              b.defenceLeverage * 0.1 -
+              Math.max(
+                ...b.defenceLeverage
+                  .filter((s) => s !== null)
+                  .map((s) => s.leverage)
+              ) *
+                0.1 -
               (Math.max(
                 ...a.skills.filter((s) => s !== null).map((s) => s.leverage)
               ) +
-                a.defenceLeverage * 0.1)
+                Math.max(
+                  ...a.defenceLeverage
+                    .filter((s) => s !== null)
+                    .map((s) => s.leverage)
+                ) *
+                  0.1)
             );
           });
 
   function summarizeSkills(
-    skills: (Skill & { leverage: number })[]
-  ): (Skill & { leverage: number })[] {
+    skills: (Skill & { leverage: number; isCharacteristic: boolean })[],
+    isDASC: boolean = false
+  ): (Skill & { leverage: number; isCharacteristic: boolean })[] {
     return Object.values(
       skills
         .filter((s) => s !== null)
@@ -91,8 +148,14 @@
             p[c.type] = c;
           }
           return p;
-        }, {} as { [type in PokemonType]: Skill & { leverage: number } })
-    );
+        }, {} as { [type in PokemonType]: Skill & { leverage: number; isCharacteristic: boolean } })
+    ).sort((a, b) => {
+      if (isDASC) {
+        return b.leverage - a.leverage;
+      } else {
+        return a.leverage - b.leverage;
+      }
+    });
   }
 </script>
 
@@ -114,15 +177,20 @@
 
   <div class="mt-4 p-1 bg-yellow-100 border">
     <div class="text-gray-600 font-bold">敵のポケモン</div>
-    <SelectInput value={targetPokemon} items={PokemonData} let:item={pokemon}>
+    <SelectInput
+      value={targetPokemon}
+      items={PokemonData}
+      let:item={pokemon}
+      on:change={(e) => (targetPokemon = e.detail)}
+    >
       {pokemon.name}
     </SelectInput>
   </div>
 
   <div class="flex flex-wrap mt-4">
     {#each _party as partyPokemon, i}
-      <div class="w-1/3 p-1 border text-gray-600 bg-gray-50">
-        <div class="bg-gray-600 text-white -mx-1 -mt-1 px-1  text-sm font-bold">
+      <div class="w-1/3 p-1 border text-gray-600 bg-gray-50 text-sm">
+        <div class="bg-gray-600 text-white -mx-1 -mt-1 px-1   font-bold">
           {#if i === 0}おすすめ
           {:else}
             &nbsp;
@@ -130,12 +198,7 @@
         </div>
 
         <div class="p-1">{partyPokemon.name}</div>
-        <div class="">
-          <div class="bg-blue-400 -mx-1 px-1 text-white text-sm">
-            わざを受けた時
-          </div>
-          <div class="p-1">×{partyPokemon.defenceLeverage}</div>
-        </div>
+
         <div class="">
           <div class="bg-red-400 -mx-1 px-1 text-white  text-sm">
             攻撃をした時
@@ -144,6 +207,25 @@
             {#each summarizeSkills(partyPokemon.skills) as skill}
               <div>
                 {skill.type} ×{skill.leverage}
+                <span class="text-xs"
+                  >{skill.isCharacteristic ? "(特性)" : ""}</span
+                >
+              </div>
+            {/each}
+          </div>
+        </div>
+
+        <div class="">
+          <div class="bg-blue-400 -mx-1 px-1 text-white text-sm">
+            わざを受けた時
+          </div>
+          <div class="p-1">
+            {#each summarizeSkills(partyPokemon.defenceLeverage, true) as skill}
+              <div>
+                {skill.type} ×{skill.leverage}
+                <span class="text-xs"
+                  >{skill.isCharacteristic ? "(特性)" : ""}</span
+                >
               </div>
             {/each}
           </div>
