@@ -241,7 +241,7 @@
         <div class="p-1">
           <div>{partyPokemon.name}</div>
           <div class="text-gray-600 text-sm font-bold">
-            S:{partyPokemon.s}
+            S:{partyPokemon.s} B:{partyPokemon.b} D:{partyPokemon.d}
           </div>
         </div>
 
