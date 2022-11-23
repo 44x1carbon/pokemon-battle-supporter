@@ -31,6 +31,11 @@
   $: {
     if (partyPokemon !== null) {
       const pokemon = PokemonData.find((p) => p.name === partyPokemon.name);
+      console.log([
+        ...pokemon.tl.split("/").map((seg) => seg.split(",")[0]),
+        ...pokemon.tm.split("/"),
+        ...pokemon.tt.split("/"),
+      ]);
       skills = [
         ...pokemon.tl.split("/").map((seg) => seg.split(",")[0]),
         ...pokemon.tm.split("/"),

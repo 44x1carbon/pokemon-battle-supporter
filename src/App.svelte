@@ -118,24 +118,49 @@
             };
           })
           .sort((a, b) => {
-            return (
-              Math.max(
-                ...b.skills.filter((s) => s !== null).map((s) => s.leverage)
-              ) -
-              Math.max(
-                ...b.defenceLeverage
-                  .filter((s) => s !== null)
-                  .map((s) => s.leverage)
-              ) -
-              (Math.max(
-                ...a.skills.filter((s) => s !== null).map((s) => s.leverage)
-              ) -
-                Math.max(
+            const aMaxAttackLeverage = Math.max(
+              ...a.skills.filter((s) => s !== null).map((s) => s.leverage)
+            );
+            const bMaxAttackLeverage = Math.max(
+              ...b.skills.filter((s) => s !== null).map((s) => s.leverage)
+            );
+            if (aMaxAttackLeverage === bMaxAttackLeverage) {
+              const aInvalidTypeNum = a.defenceLeverage.filter(
+                (s) => s.leverage === 0
+              ).length;
+              const bInvalidTypeNum = b.defenceLeverage.filter(
+                (s) => s.leverage === 0
+              ).length;
+
+              if (aInvalidTypeNum === bInvalidTypeNum) {
+                const aMaxDefenceLeverage = Math.max(
                   ...a.defenceLeverage
                     .filter((s) => s !== null)
                     .map((s) => s.leverage)
-                ))
-            );
+                );
+                const bMaxDefenceLeverage = Math.max(
+                  ...b.defenceLeverage
+                    .filter((s) => s !== null)
+                    .map((s) => s.leverage)
+                );
+
+                if (aMaxDefenceLeverage === bMaxDefenceLeverage) {
+                  const aMaxTypeNum = a.defenceLeverage.filter(
+                    (s) => s.leverage === aMaxDefenceLeverage
+                  ).length;
+                  const bMaxTypeNum = b.defenceLeverage.filter(
+                    (s) => s.leverage === bMaxDefenceLeverage
+                  ).length;
+                  return aMaxTypeNum - bMaxTypeNum;
+                } else {
+                  return aMaxDefenceLeverage - bMaxDefenceLeverage;
+                }
+              } else {
+                return bInvalidTypeNum - aInvalidTypeNum;
+              }
+            } else {
+              return bMaxAttackLeverage - aMaxAttackLeverage;
+            }
           });
 
   function summarizeSkills(
